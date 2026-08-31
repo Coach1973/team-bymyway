@@ -74,16 +74,27 @@
 </form>
 </div>
 
-<h2>核心價值卡片（可自行新增刪除）</h2>
+<h2>核心價值卡片（可自行新增刪除，最多9項）</h2>
 <div class="box">
   <div class="row-list">
     {% for v in values %}
     <div class="row-item">
       <span><strong>{{ v.title }}</strong>{% if v.body %} — {{ v.body }}{% endif %}</span>
+      <form method="post" action="/admin/chapters/{{ chapter.id }}/values/{{ v.id }}/delete">
+        <button type="submit" class="del">刪除</button>
+      </form>
     </div>
     {% endfor %}
   </div>
-  <div class="full-note">核心價值由各分會管理員自行新增刪除（最多 9 項），如需調整請聯繫總管理員</div>
+  {% if values|length < 9 %}
+  <form class="add-form" method="post" action="/admin/chapters/{{ chapter.id }}/values/add">
+    <input type="text" name="title" placeholder="標題，例如「誠信為本」" required>
+    <input type="text" name="body" placeholder="說明文字">
+    <button type="submit">新增</button>
+  </form>
+  {% else %}
+  <div class="full-note">已達9項上限，如需新增請先刪除一項</div>
+  {% endif %}
 </div>
 
 <h2>參訪須知／招募資格卡片（可自行新增刪除）</h2>

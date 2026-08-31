@@ -401,6 +401,26 @@ def admin_edit(chapter_id):
     )
 
 
+@app.route("/admin/chapters/<int:chapter_id>/values/add", methods=["POST"])
+@login_required
+def admin_value_add(chapter_id):
+    conn = db.get_conn()
+    db.add_value(
+        conn, chapter_id, request.form.get("title", "").strip(), request.form.get("body", "").strip()
+    )
+    conn.close()
+    return redirect(url_for("admin_edit", chapter_id=chapter_id))
+
+
+@app.route("/admin/chapters/<int:chapter_id>/values/<int:value_id>/delete", methods=["POST"])
+@login_required
+def admin_value_delete(chapter_id, value_id):
+    conn = db.get_conn()
+    db.delete_value(conn, value_id, chapter_id)
+    conn.close()
+    return redirect(url_for("admin_edit", chapter_id=chapter_id))
+
+
 @app.route("/admin/chapters/<int:chapter_id>/notices/add", methods=["POST"])
 @login_required
 def admin_notice_add(chapter_id):

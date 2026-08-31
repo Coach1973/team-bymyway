@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ chapter.name_zh }}・team.bymyway.com{% endblock %}
+{% block body %}
+
+{% if chapter.status == 'forming' %}
+<div class="placeholder-note">籌備中・準備中</div>
+{% endif %}
+
+<header>
+  <div class="wrap navbar">
+    <a class="logo" href="/">{{ chapter.name_zh }}<span>{{ chapter.name_en or '' }}・team.bymyway.com</span></a>
+    <nav class="main-nav"><ul>
+      <li><a href="/">分會列表</a></li>
+      <li><a href="#about">認識分會</a></li>
+      <li><a href="#value">核心價值</a></li>
+      {% if stats %}<li><a href="#glory">分會之光</a></li>{% endif %}
+      <li><a href="#members">分會夥伴</a></li>
+    </ul></nav>
+    <div class="nav-actions">
+      <button class="hamburger-btn" onclick="openUsefulLinksModal()" aria-label="常用連結" title="常用連結">
+        <span></span><span></span><span></span>
+      </button>
+      <a href="#" class="btn">{{ chapter.cta_label or '預約參訪' }}</a>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    {% if chapter.badge_text %}<div class="badge">{{ chapter.badge_text }}</div>{% endif %}
+    <h1>{{ chapter.hero_title or chapter.name_zh }}</h1>
+    <p>{{ chapter.hero_desc or '' }}</p>
+    <div class="cta-row">
+      <a href="#" class="btn btn-outline">{{ chapter.cta_label or '預約參訪' }}</a>
+    </div>
+  </div>
+</div>
+
+{% if notices %}
+<section id="about">
+  <div class="wrap">
+    <div class="section-tag">{{ chapter.about_tag or 'Before You Visit' }}</div>
+    <h2>{{ chapter.about_title or '參訪須知' }}</h2>
+    <p class="lead">{{ chapter.about_desc or '' }}</p>
+    <div class="notice-grid">
+      {% for n in notices %}
+      <div class="notice-card"><div class="notice-num">{{ loop.index }}</div><h3>{{ n.title }}</h3><p>{{ n.body|safe }}</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="value" id="value">
+  <div class="wrap">
+    <div class="section-tag">Our Core Value</div>
+    <h2>核心價值與分會精神</h2>
+    <div class="value-grid">
+      {% for v in values %}
+      <div class="value-card">
+        <h3>{{ v.title }}</h3>
+        <p>{{ v.body }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if stats %}
+<section class="glory" id="glory">
+  <div class="wrap">
+    <div class="section-tag">Chapter Glory</div>
+    <h2>分會之光</h2>
+    <div class="glory-grid">
+      {% for s in stats %}
+      <div class="glory-card"><div class="num">{{ s.num }}</div><p>{{ s.label }}</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="members" id="members">
+  <div class="wrap">
+    <div class="section-tag">Our Members</div>
+    <h2>分會夥伴</h2>
+    <p class="lead">每位夥伴自己填寫、送出後立刻上架，歡迎大家建立自己的簡介卡片</p>
+    {% if members %}
+    <div class="member-grid">
+      {% for m in members %}
+      <div class="member-card">
+        <div class="member-photo"><img src="{{ url_for('static', filename='uploads/' ~ m.photo_filename) }}" alt="{{ m.name }}"></div>
+        <div class="member-info">
+          <h3>{{ m.name }}</h3>
+          <div class="member-subtitle">{{ m.company_title }}{% if m.role_tag %}<br>{{ m.role_tag }}{% endif %}</div>
+          <button class="member-bio-btn"
+            data-name="{{ m.name }}"
+            data-subtitle="{{ m.company_title }}{% if m.role_tag %} ｜ {{ m.role_tag }}{% endif %}"
+            data-bio="{{ m.bio }}"
+            data-links='{{ member_links(m) | tojson }}'
+            onclick="openMemberBio(this)">簡介</button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="lead" style="margin-bottom:0;">還沒有夥伴資料，歡迎成為第一位。</p>
+    {% endif %}
+    <div class="cta-row" style="margin-top:40px;">
+      <a href="{{ url_for('member_join_form', slug=chapter.slug) }}" class="btn">我要建立我的簡介</a>
+    </div>
+  </div>
+</section>
+
+<div class="member-modal-overlay" id="memberBioModal" onclick="if(event.target===this)closeMemberBio()">
+  <div class="member-modal">
+    <h3 id="memberModalName"></h3>
+    <div class="member-modal-subtitle" id="memberModalSubtitle"></div>
+    <div class="member-modal-bio" id="memberModalBio"></div>
+    <div class="member-modal-contact" id="memberModalContact"></div>
+    <button class="member-modal-close-btn" onclick="closeMemberBio()">關閉</button>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-row">
+      <div class="foot-slogan">{{ chapter.footer_slogan or chapter.name_zh }}</div>
+      <div class="foot-links">
+        {% for l in links %}<a href="{{ l.url }}" target="_blank" rel="noopener">{{ l.label }}</a>{% endfor %}
+      </div>
+    </div>
+    <div class="copyright">Copyright © 2026 {{ chapter.name_zh }}・team.bymyway.com</div>
+  </div>
+</footer>
+
+{% endblock %}

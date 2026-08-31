@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>後台登入</title>
+<style>
+  body{font-family:"Helvetica Neue",Arial,"PingFang TC","Microsoft JhengHei",sans-serif;background:#2A2829;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}
+  form{background:#fff;color:#2A2829;padding:40px;border-radius:8px;width:320px;}
+  h1{font-size:20px;margin-bottom:24px;}
+  label{display:block;font-size:13px;margin:12px 0 6px;color:#6B665D;}
+  input{width:100%;padding:10px 12px;border:1px solid #E5DFD3;border-radius:4px;font-size:15px;}
+  button{width:100%;margin-top:20px;padding:12px;background:#0F766E;color:#fff;border:none;border-radius:4px;font-weight:700;cursor:pointer;}
+  .error{color:#B91C1C;font-size:13px;margin-top:12px;}
+</style>
+</head>
+<body>
+<form method="post">
+  <h1>{{ title or 'team.bymyway.com・後台登入' }}</h1>
+  <label>帳號</label>
+  <input type="text" name="username" required autofocus>
+  <label>密碼</label>
+  <input type="password" name="password" required>
+  <button type="submit">登入</button>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+</form>
+</body>
+</html>

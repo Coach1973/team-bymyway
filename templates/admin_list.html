@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>後台・分會列表</title>
+<style>
+  body{font-family:"Helvetica Neue",Arial,"PingFang TC","Microsoft JhengHei",sans-serif;background:#FAF7F2;color:#2A2829;margin:0;padding:40px;}
+  h1{margin-bottom:24px;}
+  table{width:100%;border-collapse:collapse;background:#fff;}
+  th,td{text-align:left;padding:14px 16px;border-bottom:1px solid #E5DFD3;font-size:14px;}
+  a.btn{display:inline-block;background:#0F766E;color:#fff;padding:8px 16px;border-radius:4px;font-size:13px;font-weight:700;text-decoration:none;}
+  a.plain{color:#791F1F;text-decoration:none;}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+  .status-forming{color:#B08D57;font-weight:700;}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>team.bymyway.com・後台管理</h1>
+  <a class="plain" href="/admin/logout">登出</a>
+</div>
+<p style="font-size:13px;color:#6B665D;margin-bottom:16px;">總管理員（您）可編輯所有分會。每個分會也有自己獨立的登入網址跟帳密，可以分享給該分會的資訊管理員自行維護，不會看到或動到其他分會的資料。</p>
+<table>
+  <tr><th>分會</th><th>狀態</th><th>公開網址</th><th>獨立後台登入網址</th><th>操作</th></tr>
+  {% for c in chapters %}
+  <tr>
+    <td>{{ c.name_zh }}</td>
+    <td>{% if c.status == 'forming' %}<span class="status-forming">籌備中</span>{% else %}正式營運{% endif %}</td>
+    <td><a class="plain" href="/{{ c.slug }}" target="_blank">/{{ c.slug }}</a></td>
+    <td><a class="plain" href="/admin/{{ c.slug }}/login" target="_blank">/admin/{{ c.slug }}/login</a></td>
+    <td><a class="btn" href="/admin/chapters/{{ c.id }}/edit">編輯</a></td>
+  </tr>
+  {% endfor %}
+</table>
+</body>
+</html>

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}送出成功・{{ chapter.name_zh }}{% endblock %}
+{% block extra_style %}
+  .thanks-wrap{max-width:460px;margin:0 auto;min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;text-align:center;}
+  .check{font-size:56px;margin-bottom:20px;}
+  .thanks-wrap h1{font-size:26px;font-weight:900;margin-bottom:12px;}
+  .thanks-wrap p{color:var(--sub);font-size:16px;line-height:1.7;margin-bottom:20px;}
+  .edit-box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:28px;text-align:left;width:100%;}
+  .edit-box .label{font-size:14px;font-weight:700;color:var(--red-dark);margin-bottom:10px;}
+  .edit-box .warn{font-size:13px;color:var(--sub);margin-top:10px;line-height:1.6;}
+  .edit-box .url-row{display:flex;gap:8px;}
+  .edit-box input{flex:1;padding:10px 12px;font-size:13px;border-radius:6px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-family:monospace;}
+  .edit-box button{padding:10px 16px;border:none;border-radius:6px;background:var(--red);color:#fff;font-weight:900;font-size:13px;cursor:pointer;font-family:inherit;}
+  .edit-box button:hover{background:var(--red-dark);}
+{% endblock %}
+{% block body %}
+<div class="thanks-wrap">
+  <div class="check">🎉</div>
+  <h1>送出<span style="color:var(--red-dark);">成功</span>！</h1>
+  <p>您的資料已經送出，馬上就會出現在{{ chapter.name_zh }}頁面上，歡迎前往查看。</p>
+
+  {% if edit_url %}
+  <div class="edit-box">
+    <div class="label">📌 請收藏這個專屬連結，日後可自己修改或刪除資料</div>
+    <div class="url-row">
+      <input type="text" id="editUrl" value="{{ edit_url }}" readonly onclick="this.select()">
+      <button type="button" onclick="copyEditUrl()">複製</button>
+    </div>
+    <div class="warn">這個連結只會出現這一次，請截圖或加入書籤保存。之後想改資料、換照片、加連結，或是想整個刪掉，都可以直接用這個連結自己處理。</div>
+  </div>
+  {% endif %}
+
+  <a class="btn" href="{{ url_for('chapter_page', slug=chapter.slug) }}">查看{{ chapter.name_zh }}頁面 →</a>
+</div>
+<script>
+function copyEditUrl() {
+  var input = document.getElementById('editUrl');
+  input.select();
+  navigator.clipboard.writeText(input.value).catch(function() {
+    document.execCommand('copy');
+  });
+}
+</script>
+{% endblock %}

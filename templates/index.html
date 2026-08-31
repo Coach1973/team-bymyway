@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}team.bymyway.com・分會列表{% endblock %}
+{% block body %}
+<header>
+  <div class="wrap navbar">
+    <div class="logo">team.bymyway.com<span>通用分會系統</span></div>
+    <nav class="main-nav"><ul>
+      <li><a href="/">分會列表</a></li>
+      {% if first_chapter_slug %}
+      <li><a href="/{{ first_chapter_slug }}#about">認識分會</a></li>
+      <li><a href="/{{ first_chapter_slug }}#value">核心價值</a></li>
+      {% if chapters %}
+        {% set has_stats = chapters | selectattr('id') | list %}
+        {# 僅當第一分會有 stats 時才顯示分會之光 #}
+      {% endif %}
+      {% endif %}
+    </ul></nav>
+    <a href="/admin" class="btn">後台管理</a>
+  </div>
+</header>
+<div class="hero">
+  <div class="wrap">
+    <h1>team.bymyway.com</h1>
+    <p>通用分會系統・用 BNI 模式運作的分會雛形</p>
+  </div>
+</div>
+<section>
+  <div class="wrap">
+    <div class="notice-grid">
+      {% for c in chapters %}
+      <div class="notice-card">
+        <h3><a href="/{{ c.slug }}">{{ c.name_zh }}{% if c.status == 'forming' %}（籌備中）{% endif %}</a></h3>
+        <p>{{ c.hero_desc or '' }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

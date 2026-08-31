@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>編輯・{{ chapter.name_zh }}</title>
+<style>
+  body{font-family:"Helvetica Neue",Arial,"PingFang TC","Microsoft JhengHei",sans-serif;background:#FAF7F2;color:#2A2829;margin:0;padding:0 0 60px;}
+  .content{max-width:760px;margin:0 auto;padding:24px 40px 0;}
+  h1{margin-bottom:8px;font-size:20px;}
+  h2{font-size:16px;margin:36px 0 12px;color:#791F1F;}
+  a.plain{color:#791F1F;}
+  .savebar{position:sticky;top:0;background:#2A2829;color:#fff;padding:14px 40px;display:flex;justify-content:space-between;align-items:center;z-index:10;}
+  .savebar .name{font-weight:700;}
+  .savebar button{background:#0F766E;color:#fff;border:none;padding:10px 24px;border-radius:4px;font-weight:700;font-size:14px;cursor:pointer;}
+  .box{background:#fff;border:1px solid #E5DFD3;border-radius:8px;padding:24px;}
+  label{display:block;font-size:13px;color:#6B665D;margin:14px 0 6px;}
+  input[type=text],textarea,select{width:100%;padding:9px 12px;border:1px solid #E5DFD3;border-radius:4px;font-size:14px;font-family:inherit;}
+  textarea{min-height:64px;resize:vertical;}
+  button,.btn{background:#0F766E;color:#fff;border:none;padding:10px 20px;border-radius:4px;font-weight:700;font-size:13px;cursor:pointer;}
+  .row-list{margin-top:10px;}
+  .row-item{display:flex;justify-content:space-between;align-items:center;background:#FAF7F2;border:1px solid #E5DFD3;border-radius:4px;padding:10px 14px;margin-bottom:8px;font-size:13px;}
+  .row-item form{margin:0;}
+  .del{background:transparent;color:#0F766E;border:none;font-size:13px;cursor:pointer;text-decoration:underline;padding:0;}
+  .row-actions{display:flex;gap:14px;align-items:center;}
+  .edit-link{color:var(--red);font-size:13px;text-decoration:underline;}
+  .add-form{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .add-form input{flex:1;min-width:120px;}
+  .full-note{font-size:13px;color:#B08D57;margin-top:12px;}
+  .saved{color:#2E7D32;font-size:13px;margin:16px 0;}
+  fieldset{border:none;padding:0;margin:0;}
+</style>
+</head>
+<body>
+
+<div class="savebar">
+  <span class="name">編輯・{{ chapter.name_zh }}</span>
+  <span>
+    <a class="plain" href="/admin" style="color:#D8D0C0;margin-right:20px;">← 回列表</a>
+    <button type="submit" form="basic-form">儲存基本資料</button>
+  </span>
+</div>
+
+<div class="content">
+{% if saved %}<div class="saved">已儲存</div>{% endif %}
+
+<div class="box">
+<form method="post" id="basic-form">
+  <label>分會中文名</label>
+  <input type="text" name="name_zh" value="{{ chapter.name_zh or '' }}" required>
+  <label>分會英文名</label>
+  <input type="text" name="name_en" value="{{ chapter.name_en or '' }}">
+  <label>狀態</label>
+  <select name="status">
+    <option value="active" {% if chapter.status=='active' %}selected{% endif %}>正式營運</option>
+    <option value="forming" {% if chapter.status=='forming' %}selected{% endif %}>籌備中</option>
+  </select>
+  <label>頂部徽章文字（籌備中分會可用，例如「籌備中・招募創始會員」，留空不顯示）</label>
+  <input type="text" name="badge_text" value="{{ chapter.badge_text or '' }}">
+  <label>Hero標題</label>
+  <input type="text" name="hero_title" value="{{ chapter.hero_title or '' }}">
+  <label>Hero說明文字</label>
+  <textarea name="hero_desc">{{ chapter.hero_desc or '' }}</textarea>
+  <label>按鈕文字（例如「預約參訪」「登記成為創始會員」）</label>
+  <input type="text" name="cta_label" value="{{ chapter.cta_label or '' }}">
+  <label>參訪須知區塊標籤（英文小標）</label>
+  <input type="text" name="about_tag" value="{{ chapter.about_tag or '' }}">
+  <label>參訪須知區塊標題</label>
+  <input type="text" name="about_title" value="{{ chapter.about_title or '' }}">
+  <label>參訪須知區塊說明文字</label>
+  <textarea name="about_desc">{{ chapter.about_desc or '' }}</textarea>
+  <label>頁尾標語</label>
+  <input type="text" name="footer_slogan" value="{{ chapter.footer_slogan or '' }}">
+  <div style="margin-top:20px;"><button type="submit">儲存基本資料</button></div>
+</form>
+</div>
+
+<h2>核心價值卡片（可自行新增刪除）</h2>
+<div class="box">
+  <div class="row-list">
+    {% for v in values %}
+    <div class="row-item">
+      <span><strong>{{ v.title }}</strong>{% if v.body %} — {{ v.body }}{% endif %}</span>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="full-note">核心價值由各分會管理員自行新增刪除（最多 9 項），如需調整請聯繫總管理員</div>
+</div>
+
+<h2>參訪須知／招募資格卡片（可自行新增刪除）</h2>
+<div class="box">
+  <div class="row-list">
+    {% for n in notices %}
+    <div class="row-item">
+      <span><strong>{{ n.title }}</strong>{% if n.body %} — {{ n.body }}{% endif %}</span>
+      <form method="post" action="/admin/chapters/{{ chapter.id }}/notices/{{ n.id }}/delete">
+        <button type="submit" class="del">刪除</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+  <form class="add-form" method="post" action="/admin/chapters/{{ chapter.id }}/notices/add">
+    <input type="text" name="title" placeholder="標題，例如「50張名片」" required>
+    <input type="text" name="body" placeholder="說明文字">
+    <button type="submit">新增</button>
+  </form>
+</div>
+
+<h2>分會之光數據卡（可自行新增刪除）</h2>
+<div class="box">
+  <div class="row-list">
+    {% for s in stats %}
+    <div class="row-item">
+      <span><strong>{{ s.num }}</strong> — {{ s.label }}</span>
+      <form method="post" action="/admin/chapters/{{ chapter.id }}/stats/{{ s.id }}/delete">
+        <button type="submit" class="del">刪除</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+  <form class="add-form" method="post" action="/admin/chapters/{{ chapter.id }}/stats/add">
+    <input type="text" name="num" placeholder="數字，例如「40+」" required>
+    <input type="text" name="label" placeholder="說明，例如「在籍會員」">
+    <button type="submit">新增</button>
+  </form>
+</div>
+
+<h2>社群／外部連結（可自行新增／編輯／刪除，例如FB、LINE、報名表單）</h2>
+<div class="box">
+  <div class="row-list">
+    {% for l in links %}
+    <div class="row-item">
+      <form method="post" action="/admin/chapters/{{ chapter.id }}/links/{{ l.id }}/edit" style="display:flex;gap:8px;flex:1;flex-wrap:wrap;align-items:center;margin:0;">
+        <input type="text" name="label" value="{{ l.label }}" placeholder="名稱，例如「Facebook」" style="flex:1;min-width:100px;" required>
+        <input type="text" name="url" value="{{ l.url }}" placeholder="網址 https://..." style="flex:2;min-width:160px;" required>
+        <button type="submit" style="white-space:nowrap;">更新</button>
+      </form>
+      <form method="post" action="/admin/chapters/{{ chapter.id }}/links/{{ l.id }}/delete" style="margin-left:8px;">
+        <button type="submit" class="del">刪除</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+  <form class="add-form" method="post" action="/admin/chapters/{{ chapter.id }}/links/add">
+    <input type="text" name="label" placeholder="名稱，例如「Facebook」" required>
+    <input type="text" name="url" placeholder="網址 https://..." required>
+    <button type="submit">新增</button>
+  </form>
+</div>
+
+<h2>分會夥伴簡介（會員自助送出，立即上架；教練也可在此隨時編輯）</h2>
+<div class="box">
+  <div class="row-list">
+    {% for m in members %}
+    <div class="row-item">
+      <span><strong>{{ m.name }}</strong> — {{ m.company_title }}{% if m.role_tag %}／{{ m.role_tag }}{% endif %}</span>
+      <div class="row-actions">
+        <a href="/admin/chapters/{{ chapter.id }}/members/{{ m.id }}/edit" class="edit-link">編輯</a>
+        <form method="post" action="/admin/chapters/{{ chapter.id }}/members/{{ m.id }}/delete"
+          onsubmit="return confirm('確定要刪除這位夥伴的簡介嗎？這個動作無法復原。');">
+          <button type="submit" class="del">刪除</button>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="full-note">目前還沒有夥伴送出簡介</div>
+    {% endfor %}
+  </div>
+  <div class="full-note">公開送出網址：/{{ chapter.slug }}/join（分會頁面上的「我要建立我的簡介」按鈕會連到這裡）</div>
+</div>
+
+</div>
+</body>
+</html>

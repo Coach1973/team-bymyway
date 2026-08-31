@@ -78,6 +78,42 @@ CHAPTERS = [
         "stats": [],
         "links": [],
     },
+    {
+        "slug": "team-04",
+        "name_zh": "第四分會",
+        "name_en": "Team 04",
+        "status": "active",
+        "sort_order": 4,
+        "hero_title": "第四分會",
+        "hero_desc": "通用分會示範・team.bymyway.com — 示範分會第四個，內容由後台管理員自行編輯",
+        "cta_label": "預約參訪",
+        "footer_slogan": "第四分會",
+        "show_traditions": 0,
+        "values": [
+            ("Givers Gain．付出者收穫", "會員彼此做專業交流、建立信任關係，在信任的基礎上互相引薦生意，唯一限制是一個專業僅有一個代表。"),
+        ],
+        "notices": [],
+        "stats": [],
+        "links": [],
+    },
+    {
+        "slug": "team-05",
+        "name_zh": "第五分會",
+        "name_en": "Team 05",
+        "status": "active",
+        "sort_order": 5,
+        "hero_title": "第五分會",
+        "hero_desc": "通用分會示範・team.bymyway.com — 示範分會第五個，內容由後台管理員自行編輯",
+        "cta_label": "預約參訪",
+        "footer_slogan": "第五分會",
+        "show_traditions": 0,
+        "values": [
+            ("Givers Gain．付出者收穫", "會員彼此做專業交流、建立信任關係，在信任的基礎上互相引薦生意，唯一限制是一個專業僅有一個代表。"),
+        ],
+        "notices": [],
+        "stats": [],
+        "links": [],
+    },
 ]
 
 

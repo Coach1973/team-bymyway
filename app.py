@@ -12,10 +12,12 @@ team.bymyway.com — 通用分會系統
 """
 import os
 import re
+import subprocess
 import time
 from collections import defaultdict
 from functools import wraps
 from io import BytesIO
+from pathlib import Path
 
 from flask import Flask, abort, redirect, render_template, request, session, url_for
 from PIL import Image, ImageOps, UnidentifiedImageError
@@ -34,6 +36,17 @@ app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024  # 8MB
 _rate_limit_log: dict[str, list[float]] = defaultdict(list)
 RATE_LIMIT_MAX = 5
 RATE_LIMIT_WINDOW = 3600  # 1 小時
+
+NOTIFY_SCRIPT = Path.home() / ".openclaw" / "workspace" / "scripts" / "notify_coach.sh"
+
+
+def _notify_coach(msg: str) -> None:
+    """統一走workspace共用的notify_coach.sh（打Telegram），失敗只記log不影響送出體驗。"""
+    try:
+        subprocess.run(["bash", str(NOTIFY_SCRIPT), msg], capture_output=True, text=True, timeout=15)
+    except Exception:
+        pass
+
 
 db.init_db()
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -219,6 +232,77 @@ def member_join_thanks(slug):
     token = request.args.get("token") or ""
     edit_url = url_for("member_join_edit", slug=slug, token=token, _external=True) if token else None
     return render_template("member_join_thanks.html", chapter=chapter, edit_url=edit_url)
+
+
+@app.route("/<slug>/visit-signup", methods=["GET"])
+def visit_signup_form(slug):
+    """「預約參訪」／「登記成為創始會員」表單（2026-09-01教練交辦，不分分會狀態，按鈕一律連到這裡）。"""
+    conn = db.get_conn()
+    chapter = db.get_chapter_by_slug(conn, slug)
+    conn.close()
+    if not chapter:
+        abort(404)
+    return render_template("visit_signup.html", chapter=chapter, form={})
+
+
+@app.route("/<slug>/visit-signup", methods=["POST"])
+def visit_signup_submit(slug):
+    conn = db.get_conn()
+    chapter = db.get_chapter_by_slug(conn, slug)
+    if not chapter:
+        conn.close()
+        abort(404)
+
+    # honeypot：一般人看不到這個欄位，機器人才會填
+    if (request.form.get("website") or "").strip():
+        conn.close()
+        return redirect(url_for("visit_signup_thanks", slug=slug))
+
+    ip = request.headers.get("CF-Connecting-IP") or request.remote_addr or "unknown"
+    if not _check_rate_limit(ip):
+        conn.close()
+        return render_template(
+            "visit_signup.html", chapter=chapter,
+            error="這個小時送出次數太多了，請稍後再試一次", form=request.form,
+        ), 429
+
+    name = (request.form.get("name") or "").strip()
+    phone = (request.form.get("phone") or "").strip()
+    email = (request.form.get("email") or "").strip()
+    company = (request.form.get("company") or "").strip()
+
+    error = None
+    if not name:
+        error = "請填寫姓名"
+    elif not phone:
+        error = "請填寫電話"
+
+    if error:
+        conn.close()
+        return render_template(
+            "visit_signup.html", chapter=chapter, error=error,
+            form={"name": name, "phone": phone, "email": email, "company": company},
+        ), 400
+
+    db.insert_visit_signup(conn, chapter["id"], name, phone, email, company)
+    conn.close()
+
+    _notify_coach(
+        f"🎯【{chapter['cta_label'] or '預約參訪'}】{chapter['name_zh']}\n"
+        f"姓名：{name}\n電話：{phone}\nEmail：{email or '未填'}\n公司：{company or '未填'}"
+    )
+
+    return redirect(url_for("visit_signup_thanks", slug=slug))
+
+
+@app.route("/<slug>/visit-signup/thanks")
+def visit_signup_thanks(slug):
+    conn = db.get_conn()
+    chapter = db.get_chapter_by_slug(conn, slug)
+    conn.close()
+    if not chapter:
+        abort(404)
+    return render_template("visit_signup_thanks.html", chapter=chapter)
 
 
 @app.route("/<slug>/join/edit/<token>", methods=["GET"])

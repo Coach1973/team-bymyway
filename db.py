@@ -235,6 +235,15 @@ def member_links(member) -> list[dict]:
     return result
 
 
+def insert_visit_signup(conn, chapter_id, name, phone, email, company) -> int:
+    cur = conn.execute(
+        "INSERT INTO visit_signups (chapter_id, name, phone, email, company) VALUES (?, ?, ?, ?, ?)",
+        (chapter_id, name, phone, email or None, company or None),
+    )
+    conn.commit()
+    return cur.lastrowid
+
+
 def insert_member(conn, chapter_id, name, company_title, role_tag, bio, photo_filename, links: dict) -> tuple[int, str]:
     token = secrets.token_urlsafe(16)
     cols = ["chapter_id", "name", "company_title", "role_tag", "bio", "photo_filename",

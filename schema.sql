@@ -88,3 +88,15 @@ CREATE TABLE IF NOT EXISTS chapter_members (
     source         TEXT NOT NULL DEFAULT 'self-submit',
     created_at     TEXT NOT NULL DEFAULT (datetime('now','localtime'))
 );
+
+-- 「預約參訪」/「登記成為創始會員」表單（2026-09-01教練交辦，不分分會狀態一律適用）：
+-- 送出後即時Telegram通知教練，比照bni-chapters籌備會的founder_signups設計
+CREATE TABLE IF NOT EXISTS visit_signups (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    chapter_id INTEGER NOT NULL REFERENCES chapters(id) ON DELETE CASCADE,
+    name       TEXT NOT NULL,
+    phone      TEXT NOT NULL,
+    email      TEXT,
+    company    TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+);

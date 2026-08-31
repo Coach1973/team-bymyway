@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}{{ chapter.cta_label or '預約參訪' }}・{{ chapter.name_zh }}{% endblock %}
+{% block extra_style %}
+  .join-wrap{max-width:480px;margin:0 auto;padding:64px 24px 100px;}
+  .join-wrap h1{font-size:26px;font-weight:900;margin-bottom:8px;text-align:center;}
+  .join-wrap .desc{text-align:center;color:var(--sub);font-size:15px;margin-bottom:32px;}
+  .join-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:32px 28px;box-shadow:0 4px 16px rgba(0,0,0,.06);}
+  .join-card label{display:block;font-size:14px;font-weight:700;color:var(--ink);margin:18px 0 6px;}
+  .join-card label:first-of-type{margin-top:0;}
+  .required{color:var(--teal-dark);}
+  .join-card input[type=text],.join-card input[type=tel],.join-card input[type=email]{
+    width:100%;padding:11px 14px;font-size:15px;border-radius:8px;border:1px solid var(--line);
+    background:var(--paper);color:var(--ink);font-family:inherit;
+  }
+  .honeypot{position:absolute;left:-9999px;opacity:0;}
+  .join-card button.submit-btn{
+    width:100%;margin-top:28px;padding:14px;font-size:16px;font-weight:900;border:none;
+    border-radius:8px;background:var(--teal);color:#fff;cursor:pointer;font-family:inherit;
+  }
+  .join-card button.submit-btn:hover{background:var(--teal-dark);}
+  .error{margin-bottom:18px;padding:10px 12px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;color:#B91C1C;font-size:14px;text-align:center;}
+  .back{display:block;text-align:center;margin-top:20px;color:var(--sub);font-size:14px;}
+{% endblock %}
+{% block body %}
+<div class="join-wrap">
+  <h1>{{ chapter.cta_label or '預約參訪' }}</h1>
+  <p class="desc">留下您的資料，我們會盡快跟您聯繫</p>
+  <div class="join-card">
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <form method="POST">
+      <input type="text" name="website" class="honeypot" tabindex="-1" autocomplete="off">
+
+      <label>姓名 <span class="required">*</span></label>
+      <input type="text" name="name" value="{{ form.get('name', '') }}" required>
+
+      <label>電話 <span class="required">*</span></label>
+      <input type="tel" name="phone" value="{{ form.get('phone', '') }}" required>
+
+      <label>Email</label>
+      <input type="email" name="email" value="{{ form.get('email', '') }}">
+
+      <label>公司</label>
+      <input type="text" name="company" value="{{ form.get('company', '') }}">
+
+      <button type="submit" class="submit-btn">送出</button>
+    </form>
+  </div>
+  <a class="back" href="{{ url_for('chapter_page', slug=chapter.slug) }}">← 回{{ chapter.name_zh }}頁面</a>
+</div>
+{% endblock %}

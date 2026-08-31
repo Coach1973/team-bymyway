@@ -20,7 +20,7 @@
       <button class="hamburger-btn" onclick="openUsefulLinksModal()" aria-label="常用連結" title="常用連結">
         <span></span><span></span><span></span>
       </button>
-      <a href="#" class="btn">{{ chapter.cta_label or '預約參訪' }}</a>
+      <a href="{{ url_for('visit_signup_form', slug=chapter.slug) }}" class="btn">{{ chapter.cta_label or '預約參訪' }}</a>
     </div>
   </div>
 </header>
@@ -31,7 +31,7 @@
     <h1>{{ chapter.hero_title or chapter.name_zh }}</h1>
     <p>{{ chapter.hero_desc or '' }}</p>
     <div class="cta-row">
-      <a href="#" class="btn btn-outline">{{ chapter.cta_label or '預約參訪' }}</a>
+      <a href="{{ url_for('visit_signup_form', slug=chapter.slug) }}" class="btn btn-outline">{{ chapter.cta_label or '預約參訪' }}</a>
     </div>
   </div>
 </div>

@@ -159,10 +159,39 @@ def chapter_page(slug):
 def member_join_form(slug):
     conn = db.get_conn()
     chapter = db.get_chapter_by_slug(conn, slug)
-    conn.close()
     if not chapter:
+        conn.close()
         abort(404)
+    # 已經事先建好座位的分會（第一分會起）：先請本人認座位，名單上沒有的才走新建表單
+    seats = db.list_claimable_members(conn, chapter["id"])
+    conn.close()
+    if seats and request.args.get("new") != "1":
+        picked = int(request.args["seat"]) if (request.args.get("seat") or "").isdigit() else None
+        return render_template("member_claim.html", chapter=chapter, seats=seats, error=None, picked=picked)
     return render_template("member_join.html", chapter=chapter, error=None, form={})
+
+
+@app.route("/<slug>/claim", methods=["POST"])
+def member_claim_submit(slug):
+    """選名字就進到自己的座位：姓名以戰情表為準，本人補照片、公司/專業類別、簡介與連結。"""
+    conn = db.get_conn()
+    chapter = db.get_chapter_by_slug(conn, slug)
+    if not chapter:
+        conn.close()
+        abort(404)
+    try:
+        member_id = int(request.form.get("member_id") or 0)
+    except ValueError:
+        member_id = 0
+    member = db.get_seeded_member(conn, chapter["id"], member_id)
+    if not member:
+        seats = db.list_claimable_members(conn, chapter["id"])
+        conn.close()
+        return render_template(
+            "member_claim.html", chapter=chapter, seats=seats, picked=None, error="請先選擇您的名字",
+        ), 400
+    conn.close()
+    return redirect(url_for("member_join_edit", slug=slug, token=member["edit_token"]))
 
 
 @app.route("/<slug>/join", methods=["POST"])
@@ -335,7 +364,9 @@ def member_join_edit_submit(slug, token):
         conn.close()
         abort(404)
 
-    name = (request.form.get("name") or "").strip()
+    # 事先建好的座位：姓名以戰情表為準不能改；公司、簡介可以先空著，不能因此卡住
+    seeded = member["claim_phones"] is not None
+    name = member["name"] if seeded else (request.form.get("name") or "").strip()
     company_title = (request.form.get("company_title") or "").strip()
     role_tag = (request.form.get("role_tag") or "").strip()
     bio = (request.form.get("bio") or "").strip()
@@ -343,7 +374,7 @@ def member_join_edit_submit(slug, token):
     photo = request.files.get("photo")
 
     error = None
-    if not name or not company_title or not bio:
+    if not name or (not seeded and (not company_title or not bio)):
         error = "姓名、公司/職稱、簡介都要填"
 
     filename = None
@@ -360,6 +391,8 @@ def member_join_edit_submit(slug, token):
                   "bio": bio, **links},
         ), 400
 
+    if seeded:
+        db.log_member_edit(conn, member, request.headers.get("CF-Connecting-IP") or request.remote_addr)
     db.update_member(conn, member["id"], name, company_title, role_tag, bio, links, filename)
     conn.close()
     return redirect(url_for("member_join_edit", slug=slug, token=token, saved=1))
@@ -373,7 +406,8 @@ def member_join_edit_delete(slug, token):
         conn.close()
         abort(404)
     member = db.get_member_by_token(conn, chapter["id"], token)
-    if not member:
+    if not member or member["claim_phones"] is not None:
+        # 事先建好的座位沒有密碼，不開放從前台刪除（要下架請找管理員）
         conn.close()
         abort(404)
     db.delete_member(conn, member["id"], chapter["id"])

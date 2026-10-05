@@ -43,28 +43,37 @@
 {% endblock %}
 {% block body %}
 <div class="join-wrap">
+  {% set seeded = member.claim_phones is not none %}
+  {% if seeded %}
+  <h1>完成我的簡介</h1>
+  <p class="desc">姓名照戰情表；請補上大頭照、公司／專業類別、簡介和連結</p>
+  {% else %}
   <h1>修改我的資料</h1>
   <p class="desc">這是您的專屬編輯連結，只有您能看到並修改這份資料</p>
+  {% endif %}
   <div class="join-card">
     {% if error %}<div class="error">{{ error }}</div>{% endif %}
-    {% if saved %}<div class="saved">已儲存修改</div>{% endif %}
+    {% if saved %}<div class="saved">已儲存修改</div>
+    {% elif seeded %}<div class="saved">🎉 這是您的座位！請補上<b>大頭照</b>、<b>公司／專業類別</b>和<b>網站連結</b>，再按最下面儲存。</div>{% endif %}
     <form method="POST" enctype="multipart/form-data">
       {% set f = form if form else member %}
       <label>姓名 <span class="required">*</span></label>
-      <input type="text" name="name" value="{{ f.name if f else '' }}" required>
+      <input type="text" name="name" value="{{ f.name if f else '' }}" required{% if seeded %} readonly style="background:#F3F4F6;"{% endif %}>
+      {% if seeded %}<div class="hint">姓名以分會戰情表為準；要更正請告訴分會管理員</div>{% endif %}
 
-      <label>公司 / 職稱 <span class="required">*</span></label>
-      <input type="text" name="company_title" value="{{ f.company_title if f else '' }}" required>
+      <label>公司 / 職稱{% if not seeded %} <span class="required">*</span>{% endif %}</label>
+      <input type="text" name="company_title" value="{{ f.company_title if f else '' }}"{% if not seeded %} required{% endif %}>
 
-      <label>產業別／頭銜標籤（選填）</label>
+      <label>{% if seeded %}專業類別（例如：人壽保險、美白牙齒）{% else %}產業別／頭銜標籤（選填）{% endif %}</label>
       <input type="text" name="role_tag" value="{{ (f.role_tag if f else '') or '' }}">
 
-      <label>簡介 <span class="required">*</span></label>
-      <textarea name="bio" required>{{ f.bio if f else '' }}</textarea>
+      <label>簡介{% if not seeded %} <span class="required">*</span>{% else %}（選填）{% endif %}</label>
+      <textarea name="bio"{% if not seeded %} required{% endif %}>{{ f.bio if f else '' }}</textarea>
 
       <label>照片</label>
-      <div class="current-photo"><img src="{{ url_for('static', filename='uploads/' ~ member.photo_filename) }}" alt="{{ member.name }}"></div>
+      {% if member.photo_filename %}<div class="current-photo"><img src="{{ url_for('static', filename='uploads/' ~ member.photo_filename) }}" alt="{{ member.name }}"></div>
       <div class="hint">不上傳新照片就會保留目前這張</div>
+      {% else %}<div class="hint" style="color:var(--teal-dark);font-weight:700;">還沒有照片，請上傳一張大頭照</div>{% endif %}
       <input type="file" name="photo" accept="image/jpeg,image/png,image/webp">
 
       <div class="links-hint">以下連結都選填。內建按鈕文字就是平台名稱，不用理會就會這樣顯示；如果想改成別的文字，按「修改標籤」再輸入</div>
@@ -94,6 +103,7 @@
       <button type="submit" class="save-btn">儲存修改</button>
     </form>
 
+    {% if not seeded %}
     <div class="danger-zone">
       <p>不想再出現在分會頁面上？</p>
       <form method="POST" action="{{ url_for('member_join_edit_delete', slug=chapter.slug, token=token) }}"
@@ -101,6 +111,7 @@
         <button type="submit" class="delete-btn">刪除我的資料</button>
       </form>
     </div>
+    {% endif %}
   </div>
   <a class="back" href="{{ url_for('chapter_page', slug=chapter.slug) }}">← 回{{ chapter.name_zh }}頁面</a>
 </div>

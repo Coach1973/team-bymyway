@@ -84,12 +84,12 @@
   <div class="wrap">
     <div class="section-tag">Our Members</div>
     <h2>分會夥伴</h2>
-    <p class="lead">每位夥伴自己填寫、送出後立刻上架，歡迎大家建立自己的簡介卡片</p>
+    {% if members|rejectattr("claim_phones", "none")|list %}<p class="lead">座位已經幫每位夥伴準備好了，按最下面的「我要建立我的簡介」，選自己的名字補上照片和連結</p>{% else %}<p class="lead">每位夥伴自己填寫、送出後立刻上架，歡迎大家建立自己的簡介卡片</p>{% endif %}
     {% if members %}
     <div class="member-grid">
       {% for m in members %}
       <div class="member-card">
-        <div class="member-photo"><img src="{{ url_for('static', filename='uploads/' ~ m.photo_filename) }}" alt="{{ m.name }}"></div>
+        <div class="member-photo">{% if m.photo_filename %}<img src="{{ url_for('static', filename='uploads/' ~ m.photo_filename) }}" alt="{{ m.name }}">{% else %}<div class="member-photo-empty"><span>{{ m.name[:1] }}</span><small>座位等本人來認領</small>{% if m.claim_phones is not none %}<a class="seat-claim-btn" href="{{ url_for('member_join_form', slug=chapter.slug, seat=m.id) }}">我是{{ m.name }}・補上照片</a>{% endif %}</div>{% endif %}</div>
         <div class="member-info">
           <h3>{{ m.name }}</h3>
           <div class="member-subtitle">{{ m.company_title }}{% if m.role_tag %}<br>{{ m.role_tag }}{% endif %}</div>

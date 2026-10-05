@@ -86,7 +86,18 @@ CREATE TABLE IF NOT EXISTS chapter_members (
     blog_url       TEXT, blog_label TEXT,
     edit_token     TEXT NOT NULL UNIQUE,
     source         TEXT NOT NULL DEFAULT 'self-submit',
-    created_at     TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+    created_at     TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+    claim_phones   TEXT,   -- 不是 NULL＝事先建好的座位（2026-10-05 起，比照 bni-chapters 認座位）；本站不用電話，存空字串
+    claimed_at     TEXT
+);
+
+-- 座位不用密碼（誠信原則），每次補資料前先存一份舊資料，被亂改時可還原（比照 bni-chapters）
+CREATE TABLE IF NOT EXISTS member_edit_log (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    member_id  INTEGER NOT NULL,
+    ip         TEXT,
+    old_json   TEXT NOT NULL,
+    changed_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
 );
 
 -- 「預約參訪」/「登記成為創始會員」表單（2026-09-01教練交辦，不分分會狀態一律適用）：

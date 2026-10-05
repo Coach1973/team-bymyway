@@ -1,3 +1,4 @@
+import json
 import os
 import secrets
 import sqlite3
@@ -33,6 +34,11 @@ def init_db() -> None:
     conn = get_conn()
     with open(SCHEMA_PATH, encoding="utf-8") as f:
         conn.executescript(f.read())
+    # 舊資料庫補欄位（CREATE TABLE IF NOT EXISTS 不會幫已存在的表加欄位）
+    have = {r["name"] for r in conn.execute("PRAGMA table_info(chapter_members)")}
+    for col in ("claim_phones", "claimed_at"):
+        if col not in have:
+            conn.execute(f"ALTER TABLE chapter_members ADD COLUMN {col} TEXT")
     conn.commit()
     conn.close()
 
@@ -223,6 +229,36 @@ def get_member_by_token(conn, chapter_id, token):
     return conn.execute(
         "SELECT * FROM chapter_members WHERE chapter_id = ? AND edit_token = ?", (chapter_id, token)
     ).fetchone()
+
+
+def list_claimable_members(conn, chapter_id):
+    """事先建好的座位（claim_phones 不是 NULL），依座位順序。"""
+    return conn.execute(
+        "SELECT id, name, claimed_at FROM chapter_members "
+        "WHERE chapter_id = ? AND claim_phones IS NOT NULL ORDER BY id ASC",
+        (chapter_id,),
+    ).fetchall()
+
+
+def get_seeded_member(conn, chapter_id, member_id):
+    return conn.execute(
+        "SELECT * FROM chapter_members WHERE id = ? AND chapter_id = ? AND claim_phones IS NOT NULL",
+        (member_id, chapter_id),
+    ).fetchone()
+
+
+def log_member_edit(conn, member, ip):
+    """座位不用密碼、誰都能點進去補資料（誠信原則），所以每次儲存前先留一份舊資料，被亂改時可以還原。"""
+    cols = ["photo_filename", "company_title", "role_tag", "bio", *MEMBER_LINK_COLUMNS, *MEMBER_LABEL_COLUMNS]
+    conn.execute(
+        "INSERT INTO member_edit_log (member_id, ip, old_json) VALUES (?, ?, ?)",
+        (member["id"], ip, json.dumps({c: member[c] for c in cols}, ensure_ascii=False)),
+    )
+    if not member["claimed_at"]:
+        conn.execute(
+            "UPDATE chapter_members SET claimed_at = datetime('now','localtime') WHERE id = ?", (member["id"],)
+        )
+    conn.commit()
 
 
 def member_links(member) -> list[dict]:
